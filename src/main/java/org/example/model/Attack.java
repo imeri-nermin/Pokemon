@@ -1,14 +1,14 @@
-package org.example;
+package org.example.model;
 
 public class Attack {
-    private int id;
-    private String name;
-    private String effect;
-    private String type;
-    private String kind;
-    private int power;
-    private String accuracy;
-    private int pp;
+    private final int id;
+    private final String name;
+    private final String effect;
+    private final String type;
+    private final String kind;
+    private final int power;
+    private final String accuracy;
+    private final int pp;
 
     public Attack(int id, String name, String effect, String type, String kind, int power, String accuracy, int pp) {
         this.id = id;

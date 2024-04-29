@@ -1,11 +1,13 @@
-package org.example;
+package org.example.view;
 
-import java.util.List;
-import java.util.Random;
+import org.example.model.Attack;
+import org.example.controller.Controller;
+import org.example.model.Pokemon;
+
 import java.util.Scanner;
 
 public class View {
-    private Controller controller;
+    private final Controller controller;
 
     public View(Controller controller) {
         this.controller = controller;
@@ -22,83 +24,78 @@ public class View {
         }
 
         System.out.print("Choose a Pokémon (enter ID or name): ");
+        System.out.println();
         String userInput = scanner.nextLine();
-        Pokemon playerPokemon = findPokemon(userInput);
+        Pokemon playerPokemon = controller.findPokemon(userInput);
         if (playerPokemon == null) {
             System.out.println("Invalid Pokémon selection. Exiting game.");
             return;
         }
-        System.out.println("You've chosen " + playerPokemon.getName() +" Level "+ playerPokemon.getLevel()+"!");
-        System.out.println("Available Attacks:");
-        System.out.println("1. " + playerPokemon.getAttack1().getName());
-        System.out.println("2. " + playerPokemon.getAttack2().getName());
+        System.out.println("You've chosen " + playerPokemon.getName() + " Level " + playerPokemon.getLevel() + "!");
+        displayAvailableAttacks(playerPokemon);
 
-        Pokemon opponentPokemon = selectOpponentPokemon();
-        System.out.println("Your Opponent chose " + opponentPokemon.getName() +" Level "+ opponentPokemon.getLevel()+"!");
-        System.out.println("Available Attacks:");
-        System.out.println("1. " + opponentPokemon.getAttack1().getName());
-        System.out.println("2. " + opponentPokemon.getAttack2().getName());
+        Pokemon opponentPokemon = controller.selectOpponentPokemon();
+        System.out.println("Your Opponent chose " + opponentPokemon.getName() + " Level " + opponentPokemon.getLevel() + "!");
+        displayAvailableAttacks(opponentPokemon);
+
+        Pokemon attacker;
+        Pokemon defender;
+        if (playerPokemon.getSpeed() >= opponentPokemon.getSpeed()) {
+            attacker = playerPokemon;
+            defender = opponentPokemon;
+        } else {
+            attacker = opponentPokemon;
+            defender = playerPokemon;
+        }
 
         while (playerPokemon.getHP() > 0 && opponentPokemon.getHP() > 0) {
-            displayPokemonStatus(playerPokemon);
-            displayPokemonStatus(opponentPokemon);
-            displayAvailableAttacks(playerPokemon);
+            Attack selectedAttack;
+            if (attacker == playerPokemon) {
+                selectedAttack = this.getPlayerAttack(playerPokemon);
+            } else {
+                selectedAttack = controller.selectRandomAttack(opponentPokemon);
+            }
 
-            System.out.print("Choose an attack (1 or 2): ");
-            int attackChoice = scanner.nextInt();
-            scanner.nextLine();
+            attackPokemon(attacker, defender, selectedAttack);
 
-            Attack selectedAttack = (attackChoice == 1) ? playerPokemon.getAttack1() : playerPokemon.getAttack2();
-            double damage = controller.calculateDamage(selectedAttack, playerPokemon, opponentPokemon);
-            opponentPokemon.reduceHP(damage);
-            System.out.println(playerPokemon.getName() + " used " + selectedAttack.getName() + "! It dealt " + damage + " damage to " + opponentPokemon.getName() + "!");
-
-            if (opponentPokemon.getHP() <= 0) {
-                System.out.println(opponentPokemon.getName() + " fainted! You win!");
+            if (defender.getHP() <= 0) {
+                System.out.println(defender.getName() + " fainted! " + attacker.getName() + " wins!");
                 break;
             }
 
-            Attack opponentAttack = selectRandomAttack(opponentPokemon);
-            damage = controller.calculateDamage(opponentAttack, opponentPokemon, playerPokemon);
-            playerPokemon.reduceHP(damage);
-            System.out.println(opponentPokemon.getName() + " used " + opponentAttack.getName() + "! It dealt " + damage + " damage to " + playerPokemon.getName() + "!");
-
-            if (playerPokemon.getHP() <= 0) {
-                System.out.println(playerPokemon.getName() + " fainted! You lose!");
-                break;
-            }
+            Pokemon temp = attacker;
+            attacker = defender;
+            defender = temp;
         }
     }
+    private void attackPokemon(Pokemon attacker, Pokemon defender, Attack attack) {
+        displayPokemonStatus(attacker);
 
+        int damage = (int) controller.calculateDamage(attack, attacker, defender);
+        defender.reduceHP(damage);
+        System.out.println(attacker.getName() + " used " + attack.getName() + "! It dealt " + String.format("%d", damage) + " damage to " + defender.getName() + "!");
+    }
 
-            private Pokemon findPokemon (String userInput){
-                List<Pokemon> pokemonList = controller.getPokemonList();
-                for (Pokemon pokemon : pokemonList) {
-                    if (String.valueOf(pokemon.getId()).equals(userInput) || pokemon.getName().equalsIgnoreCase(userInput)) {
-                        return pokemon;
-                    }
-                }
-                return null;
-            }
+    private Attack getPlayerAttack(Pokemon playerPokemon) {
+        Scanner scanner = new Scanner(System.in);
 
-            private Pokemon selectOpponentPokemon () {
-                List<Pokemon> pokemonList = controller.getPokemonList();
-                Random random = new Random();
-                return pokemonList.get(random.nextInt(pokemonList.size()));
-            }
+        System.out.print(playerPokemon.getName() + ", choose an attack (1 or 2): ");
+        displayAvailableAttacks(playerPokemon);
+        System.out.println();
+        //TODO: Force the user to select 1 or 2!
+        int attackChoice = scanner.nextInt();
+        scanner.nextLine();
 
-            private Attack selectRandomAttack (Pokemon pokemon){
-                Random random = new Random();
-                return (random.nextBoolean()) ? pokemon.getAttack1() : pokemon.getAttack2();
-            }
+        return  (attackChoice == 1) ? playerPokemon.getAttack1() : playerPokemon.getAttack2();
+    }
 
-            private void displayPokemonStatus (Pokemon pokemon){
-                System.out.println(pokemon.getName() + " HP: " + pokemon.getHP());
-            }
+    private void displayPokemonStatus(Pokemon pokemon) {
+        System.out.println(pokemon.getName() + " HP: " + pokemon.getHP());
+    }
 
-            private void displayAvailableAttacks (Pokemon pokemon){
-                System.out.println("Available Attacks:");
-                System.out.println("1. " + pokemon.getAttack1().getName());
-                System.out.println("2. " + pokemon.getAttack2().getName());
-            }
-        }
+    private void displayAvailableAttacks(Pokemon pokemon) {
+        System.out.println("Available Attacks:");
+        System.out.println("1. " + pokemon.getAttack1().getName());
+        System.out.println("2. " + pokemon.getAttack2().getName());
+    }
+}

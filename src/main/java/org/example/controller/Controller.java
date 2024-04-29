@@ -1,4 +1,7 @@
-package org.example;
+package org.example.controller;
+
+import org.example.model.Attack;
+import org.example.model.Pokemon;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -23,7 +26,7 @@ public class Controller {
 
     public void loadPokemonFromCSV(String fileName) {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            br.readLine(); // Skip header line
+            br.readLine();
 
             Random random = new Random();
             String line;
@@ -108,7 +111,29 @@ public class Controller {
         }
     }
 
-    public int calculateDamage(Attack attack, Pokemon attacker, Pokemon defender) {
+    public Pokemon findPokemon(String userInput) {
+        for (Pokemon pokemon : pokemonList) {
+            if (String.valueOf(pokemon.getId()).equals(userInput) || pokemon.getName().equalsIgnoreCase(userInput)) {
+                return pokemon;
+            }
+        }
+        return null;
+    }
+
+    public Pokemon selectOpponentPokemon() {
+        if (pokemonList.isEmpty()) {
+            throw new IllegalArgumentException("No Pokémon available.");
+        }
+        Random random = new Random();
+        return pokemonList.get(random.nextInt(pokemonList.size()));
+    }
+
+    public Attack selectRandomAttack(Pokemon pokemon) {
+        Random random = new Random();
+        return (random.nextBoolean()) ? pokemon.getAttack1() : pokemon.getAttack2();
+    }
+
+    public double calculateDamage(Attack attack, Pokemon attacker, Pokemon defender) {
         double attackPower = attack.getPower();
         double attackerAttack = attacker.getAttack();
         double defenderDefense = defender.getDefense();
@@ -118,6 +143,7 @@ public class Controller {
         double eff1 = typeEffectiveness.getOrDefault(attack.getType(), Collections.emptyMap()).getOrDefault(defender.getType1(), 1.0);
         double eff2 = typeEffectiveness.getOrDefault(attack.getType(), Collections.emptyMap()).getOrDefault(defender.getType2(), 1.0);
 
-        return (int)((attackPower * (attackerAttack / defenderDefense) * levelFactor * randomFactor * stabFactor * eff1 * eff2) / 25.0);
+        return (attackPower * (attackerAttack / defenderDefense) * levelFactor * randomFactor * stabFactor * eff1 * eff2) / 25.0;
     }
 }
+

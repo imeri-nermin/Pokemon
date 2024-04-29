@@ -1,22 +1,23 @@
-package org.example;
+package org.example.model;
 
 public class Pokemon {
-    private int id;
-    private String name;
-    private String type1;
-    private String type2;
-    private int total;
+    private final int id;
+    private final String name;
+    private final String type1;
+    private final String type2;
+    private final int total;
     private int hp;
-    private int attack;
-    private int defense;
-    private int spAtk;
-    private int spDef;
-    private int speed;
+    private final int attack;
+    private final int defense;
+    private final int spAtk;
+    private final int spDef;
+    private final int speed;
     private Attack attack1;
     private Attack attack2;
-    private int level;
+    private final int level;
 
-    public Pokemon(int id, String name, String type1, String type2, int total, int hp, int attack, int defense, int spAtk, int spDef, int speed, int level) {
+    public Pokemon(int id, String name, String type1, String type2, int total, int hp, int attack, int defense,
+                   int spAtk, int spDef, int speed, int level) {
         this.id = id;
         this.name = name;
         this.type1 = type1;
@@ -30,10 +31,12 @@ public class Pokemon {
         this.spDef = spDef;
         this.speed = scaleStat(speed, level);
     }
+
     private int scaleStat(int baseStat, int level) {
-        double scalingFactor = 2;
+        double scalingFactor = 3;
         return (int) (baseStat * scalingFactor * level);
     }
+
     private int scaleStatHP(int baseStat, int level) {
         double scalingFactor = 1.05;
         return (int) (baseStat * scalingFactor * level);
@@ -41,10 +44,6 @@ public class Pokemon {
 
     public int getLevel() {
         return level;
-    }
-
-    public void setLevel(int level) {
-        this.level = level;
     }
 
     public String getType1() {
@@ -99,7 +98,7 @@ public class Pokemon {
         if (damage < 0) {
             throw new IllegalArgumentException("Damage values can not be negative");
         }
-        this.hp -= (int)damage;
+        this.hp -= (int) damage;
 
         if (this.hp < 0) {
             this.hp = 0;
